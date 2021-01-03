@@ -1,2 +1,0 @@
--instalar driver do FTDI: HARDWARES\FTDI programmer\CDM21228_Setup.zip
--selecionar arduino pro or pro
