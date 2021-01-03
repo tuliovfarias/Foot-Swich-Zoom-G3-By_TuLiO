@@ -1,0 +1,113 @@
+<html>
+<!-- Copyright (C) 2015 <>< Charles Lohr, see LICENSE file for more info.
+This particular file may be licensed under the MIT/x11, New BSD or ColorChord Licenses. -->
+<head>
+<title>esp8266 USB controller</title>
+<script language="javascript" type="text/javascript" src=jquery-2.1.4.min.js.gz></script>
+<script language="javascript" type="text/javascript" src=menuinterface.js></script>
+<script language="javascript" type="text/javascript" src=main.js></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.15, maximum-scale=1.15, user-scalable=no">
+<style>
+table { width: 100%; }
+td { vertical-align: top; }
+.collapsible { display:none; }
+.inbutton { background-color:blue; }
+#SystemMessage { position: fixed; top: 5px; background-color: DarkSlateBlue; color: #ffffff; left: 5px; display:none; }
+.dragandrophandler { border:2px dotted #0B85A1; color:#92AAB0;vertical-align:middle;padding:10px 10px 10 10px;margin-bottom:10px;font-size:200%;}
+.unsaved-input { border: 2px solid pink; border-radius: 7px; }
+#MouseCap { border-radius: 25px; background: green; padding: 20px; width: 100%; height: 200px; }
+.regbtn { border-radius: 5px; background: red; padding: 10px; width: 70px; height: 70px; }
+</style>
+</head>
+<body>
+<h2>esp8266 ESPUSB controller</h2>
+<hr>
+
+<table id="MainMenu">
+
+<tbody>
+
+<tr><td width=1>
+<input type=submit onclick="ShowHideEvent( 'Introduction' );" value="Introduction"></td><td>
+<div id=Introduction class="collapsible">
+<table border=1><tr><td>
+<p>Welcome to the espusb Web-based GUI.</p>
+<p>This GUI uses WebSockets, and has only been tested under the newest (as of August, 2016) Chrome and Firefox browsers.</p>
+<p>For more information about this project, visit it on github, here: <a href=https://github.com/cnlohr/espusb>https://github.com/cnlohr/espusb</a></p>
+</div></td></tr></table></td></tr>
+
+<tr><td width=1>
+<input type=submit onclick="ShowHideEvent( 'HID' ); KickHID();" value="HID"></td><td>
+<div id=HID class="collapsible">
+<table width=100% border=1><tr><td>
+
+<TABLE><TR><TD colspan=3><div id=MouseCap>Mouse<br>Grab<br>Cell</div></TD></TR>
+<TR><TD><div id=Mouse0 class="regbtn">Left</div></TD><TD><div id=Mouse2 class="regbtn">Middle</div></TD><TD><div id=Mouse1 class="regbtn">Right</div></TD></TR>
+</table>
+
+<p>Keyboard: <button id="kbd">Focus/Show keyboard</button><input id="kin" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"/></p>Ctrl:<input type=checkbox id="mod0">Shift:<input type=checkbox id="mod1">Alt:<input type=checkbox id="mod2">Gui:<input type=checkbox id="mod3">
+<p>
+<input type=submit value="ESC" id="specialpress0">
+<input type=submit value="F1" id="specialpress1">
+<input type=submit value="F2" id="specialpress2">
+<input type=submit value="F3" id="specialpress3">
+<input type=submit value="F4" id="specialpress4">
+<input type=submit value="F5" id="specialpress5">
+<input type=submit value="F6" id="specialpress6">
+<input type=submit value="F7" id="specialpress7">
+<input type=submit value="F8" id="specialpress8">
+<input type=submit value="F9" id="specialpress9">
+<input type=submit value="F10" id="specialpress10">
+<input type=submit value="F11" id="specialpress11">
+<input type=submit value="F12" id="specialpress12">
+<input type=submit value="Prnt" id="specialpress13">
+<input type=submit value="Pause" id="specialpress14">
+<input type=submit value="Delete" id="specialpress15">
+
+<input type=submit value="Tab" id="specialpress16">
+<input type=submit value="PgUp" id="specialpress17">
+<input type=submit value="PgDn" id="specialpress18">
+<input type=submit value="Home" id="specialpress19">
+<input type=submit value="End" id="specialpress20">
+<input type=submit value="Enter" id="specialpress21">
+<input type=submit value="Vol Up" id="specialpress22">
+<input type=submit value="Vol Dn" id="specialpress23">
+</p>
+<p>
+<input type=submit value=">>" id="specialpress24">
+<input type=submit value="<<" id="specialpress25">
+<input type=submit value="vv" id="specialpress26">
+<input type=submit value="^^" id="specialpress27">
+</p>
+
+<p>
+Keyboard Layout: 
+<select id="keyboardLayoutSelect" onchange="changeKeyboardLayout()" >
+  <option value="en">English</option>
+  <option value="de">German</option>
+</select>
+</p>
+
+
+</td></tr></table>
+</div>
+</td>
+</tr>
+
+<!--<td id=LEDCanvasHolder><CANVAS id=LEDCanvas width=512 height=100></CANVAS></td>
+<td><input type=button onclick="ToggleLEDPause();" id=LEDPauseButton value="|| / >">
+</div>
+-->
+
+
+</tbody>
+
+</table>
+
+<p><font size=-2>Copyright (C) 2015-2016 &lt&gt&lt Charles Lohr, See LICENSE file for more info.</font></p>
+<div id=SystemMessage>...</div>
+</body>
+</html>
+
+

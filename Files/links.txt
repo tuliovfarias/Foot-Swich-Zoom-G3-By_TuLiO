@@ -1,0 +1,4 @@
+https://www.obdev.at/products/vusb/index.html
+
+HostShield:
+https://chome.nerpa.tech/arduino_usb_host_shield_projects/
