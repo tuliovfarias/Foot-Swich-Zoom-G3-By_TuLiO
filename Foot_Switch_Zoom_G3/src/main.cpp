@@ -1,6 +1,5 @@
 /* 
  * Projeto: Footswitch Programável para pedaleira ZOOM G3 - FSP01-ZG3
- * Versão: 1.0
  * Autor: Túlio Vieira @tuliovieiraqdm
  * 
  * Modos de funcionamento e funções de cada botão do FS: 
