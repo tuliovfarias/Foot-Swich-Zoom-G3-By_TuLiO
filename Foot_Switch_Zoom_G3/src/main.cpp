@@ -33,6 +33,7 @@
 #include "usbhub.h"
 #include "usbh_midi.h"
 #include "FastLED.h"
+#include "TimerOne.h"
 
 #define NUM_BANKS    4  //número de banks
 #define NUM_PATCHES  6  //número de patches por bank
@@ -66,6 +67,7 @@ void writePatch(byte patch);
 void readPatch();
 void bt_check(void);
 String bank_to_letter();
+void hold_function();
 
 //Variáveis globais
 byte bank_patch[NUM_BANKS][NUM_PATCHES]; //matriz que armazena todos os patches de cada bank
@@ -76,6 +78,8 @@ String bank_letter="A";
 bool program_mode=0; //0 - modo de programação / 1 - modo de seleção
 byte bt_mode=4;     //4 - modo de 4 botões de patch / 5 - modo de 5 botões de patch / 6 - modo de 6 botões de patch 
 unsigned int cont=0; //variável auxiliar para contagem de tempo
+bool shift=0; //Indica se entrou no modo de configuração (HOLD pressionado por 3 segundos)
+bool hold_flag=0; //Indica se entrou no modo de configuração (HOLD pressionado por 3 segundos)
 
 bool bt_patch=1; //indica se um botão é pressionado (coeça em 1 para carregar no início)
 bool bt_updown=0; //indica se o botão UP ou DOWN foi pressionado
@@ -120,6 +124,8 @@ void setup() {
   bank=0;foot_patch=0; //Posição inicial default
   led_show();
   //Midi.SendSysEx(message1,6); //ativa modo editor
+  Timer1.initialize(3000000); //conting 3s holding
+  Timer1.attachInterrupt(hold_function);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -213,18 +219,13 @@ void load_patches() {
 }
 
 void bt_check(void) {
-  bool shift=0; //Indica se o modo de funcionamento foi alterado
   //UP////////////////////////////////////////////////////////////////////(Momentary button)
   if (!digitalRead(BT_UP)){
     while (!digitalRead(BT_UP)){
       //Serial.print(".");
-      if (digitalRead(BT_A) != btA){btA = digitalRead(BT_A);bt_mode=4;shift=1;} //ativa modo 4 botões
-      if (digitalRead(BT_B) != btB){btB = digitalRead(BT_B);bt_mode=5;shift=1;} //ativa modo 5 botões
-      if (digitalRead(BT_C) != btC){btC = digitalRead(BT_C);bt_mode=6;shift=1;} //ativa modo 6 botões
-      if (digitalRead(BT_D) != btD){btD = digitalRead(BT_D);program_mode=1;shift=1;} //ativa modo de programação
-      if (digitalRead(BT_DOWN) != btDOWN){btDOWN = digitalRead(BT_DOWN);program_mode=0;shift=1;} //desativa modo de programação
+      Timer1.start();
     }
-    if(shift==0){
+    if(shift==0){ // Se o botão HOLD não foi pressionado por 3 segundos, funciona na função normal
       if(bt_mode==4||bt_mode==5){   //Funciona como UP
         if(bank==NUM_BANKS-1) bank=0;
         else bank++;
@@ -237,8 +238,14 @@ void bt_check(void) {
         bt_patch=1; //indica que um botão de patch foi pressionado
       }
     }
-    else{
+    else{ // Se o botão HOLD foi pressionado por 3 segundos, altera a função
+      if (digitalRead(BT_A) != btA){btA = digitalRead(BT_A);bt_mode=4;shift=0;} //ativa modo 4 botões
+      if (digitalRead(BT_B) != btB){btB = digitalRead(BT_B);bt_mode=5;shift=0;} //ativa modo 5 botões
+      if (digitalRead(BT_C) != btC){btC = digitalRead(BT_C);bt_mode=6;shift=0;} //ativa modo 6 botões
+      if (digitalRead(BT_D) != btD){btD = digitalRead(BT_D);program_mode=1;shift=0;} //ativa modo de programação
+      if (digitalRead(BT_DOWN) != btDOWN){btDOWN = digitalRead(BT_DOWN);program_mode=0;shift=0;} //desativa modo de programação
       Serial.println("Mode: "+ (String)bt_mode);
+      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
     }
   }
   //DOWN//////////////////////////////////////////////////////////////////(Non-momentary button)
@@ -362,4 +369,11 @@ String bank_to_letter(){
     break;
   }
   return bank_letter;
+}
+
+void hold_function(){
+  //Timer1.stop();
+  Timer1.detachInterrupt();
+  shift=1; Serial.println("Shift = 1");
+  for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que entrou no modo HOLD
 }
