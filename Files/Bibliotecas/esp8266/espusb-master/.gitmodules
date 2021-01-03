@@ -1,4 +1,0 @@
-[submodule "esp82xx"]
-	path = esp82xx
-	url = https://github.com/cnlohr/esp82xx.git
-
