@@ -65,12 +65,14 @@ void bt_read(void);
 void writePatch(byte patch);
 void readPatch();
 void bt_check(void);
+String bank_to_letter();
 
 //Variáveis globais
 byte bank_patch[NUM_BANKS][NUM_PATCHES]; //matriz que armazena todos os patches de cada bank
 byte patch = 0;
 byte foot_patch=0;
 byte bank=0;
+String bank_letter="A";
 bool program_mode=0; //0 - modo de programação / 1 - modo de seleção
 byte bt_mode=4;     //4 - modo de 4 botões de patch / 5 - modo de 5 botões de patch / 6 - modo de 6 botões de patch 
 unsigned int cont=0; //variável auxiliar para contagem de tempo
@@ -160,8 +162,6 @@ void loop() {
       }
     }
     //elseif (c=='p')bank++;  
-    
-    
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -228,36 +228,31 @@ void bt_check(void) {
       if(bt_mode==4||bt_mode==5){   //Funciona como UP
         if(bank==NUM_BANKS-1) bank=0;
         else bank++;
-        Serial.print("\nUP bank:" + (String)(bank));
-        Serial.print("  ");
+        Serial.println("UP para bank: " + (String)bank);
         //delay(700); //evitar repique da chave
         bt_updown=1; //indica que o botão up ou down foi pressionado   
       }
       else{ //Funciona como PATCH F (bt_mode=6)
         foot_patch=5; //posição 5 = patch F no footswitch
         bt_patch=1; //indica que um botão de patch foi pressionado
-        Serial.print("\nF ");
       }
     }
     else{
-      Serial.print("\nMode: ");
-      Serial.println((String)bt_mode);
+      Serial.println("Mode: "+ (String)bt_mode);
     }
   }
   //DOWN//////////////////////////////////////////////////////////////////(Non-momentary button)
-    if (digitalRead(BT_DOWN) != btDOWN) {
+  if (digitalRead(BT_DOWN) != btDOWN) {
     if(bt_mode==5||bt_mode==6){ //Funciona como PATCH E
       btDOWN = digitalRead(BT_DOWN);
       foot_patch=4; //posição 4 = patch E no footswitch
       bt_patch=1; //indica que um botão de patch foi pressionado
-      Serial.print("E ");        
     }
     else{ //Funciona como DOWN (bt_mode=4)
       btDOWN = digitalRead(BT_DOWN);
       if(bank==0) bank=NUM_BANKS-1;
       else bank--;
-      Serial.print("\nDOWN bank:" + (String)(bank));
-      Serial.print("  ");
+      Serial.println("DOWN para bank: " + (String)bank);
       //delay(700); //evitar repique da chave
       bt_updown=1; //indica que o botão up ou down foi pressionado 
     }
@@ -267,28 +262,24 @@ void bt_check(void) {
     btA = digitalRead(BT_A);
     foot_patch=0; //posição 0 = patch A no footswitch
     bt_patch=1; //indica que um botão de patch foi pressionado
-    Serial.print("\nA ");
   }
   //PATCH B////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_B) != btB) {
     btB = digitalRead(BT_B);
     foot_patch=1; //posição 1 = patch B no footswitch
     bt_patch=1; //indica que um botão de patch foi pressionado
-    Serial.print("\nB ");
   }
   //PATCH C////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_C) != btC) {
     btC = digitalRead(BT_C);
     foot_patch=2; //posição 2 = patch C no footswitch
     bt_patch=1; //indica que um botão de patch foi pressionado
-    Serial.print("\nC ");
   }
   //PATCH D////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_D) != btD) {
     btD = digitalRead(BT_D);
     foot_patch=3; //posição 3 = patch D no footswitch
     bt_patch=1; //indica que um botão de patch foi pressionado
-    Serial.print("\nD ");
   }
   
   if (bt_patch==1){
@@ -299,11 +290,11 @@ void bt_check(void) {
       bank_patch[bank][foot_patch] = patch; //carrega patch da pedaleira na matriz de paches
       EEPROM.write(pos_eprom,patch); //carrega patch da pedaleira na memória EPROM
       for(int i=0;i<5;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que programou
-      Serial.print("Programou patch: "+(String)(bank_patch[bank][foot_patch]));
+      Serial.println(bank_to_letter()+(String)(bank)+" programou patch: "+(String)(bank_patch[bank][foot_patch]));
     }
     else{
       writePatch(bank_patch[bank][foot_patch]); //carrega patch na pedaleira
-      Serial.print("Carregou patch: "+(String)(bank_patch[bank][foot_patch]));
+      Serial.println(bank_to_letter()+(String)(bank)+" carregou patch: "+(String)(bank_patch[bank][foot_patch]));
     }
     bt_patch=0;
   }
@@ -311,7 +302,7 @@ void bt_check(void) {
     foot_patch=0; //volta para posição A
     led_show();
     writePatch(bank_patch[bank][foot_patch]); //carrega patch na pedaleira
-    Serial.print("Carregou patch: "+(String)(bank_patch[bank][foot_patch]));
+    Serial.println(bank_to_letter()+(String)(bank)+" carregou patch: "+(String)(bank_patch[bank][foot_patch]));
     bt_updown=0;
   }
 }
@@ -344,4 +335,31 @@ void led_show(){
   FastLED.clear();
   leds[(NUM_LEDS-1)-foot_patch]= ColorFromPalette(RGB_colors, bank*16); //cor muda de acordo com bank 
   FastLED.show();
+}
+
+String bank_to_letter(){
+  switch (foot_patch)
+  {
+  case 0:
+    bank_letter="A";
+    break;
+  case 1:
+    bank_letter="B";
+    break;
+  case 2:
+    bank_letter="C";
+    break;
+  case 3:
+    bank_letter="D";
+    break;
+  case 4:
+    bank_letter="E";
+    break;  
+  case 5:
+    bank_letter="F";
+    break;  
+  default:
+    break;
+  }
+  return bank_letter;
 }
