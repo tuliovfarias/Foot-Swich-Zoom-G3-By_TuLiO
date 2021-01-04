@@ -26,14 +26,14 @@
  *  3º- Aperte o botão do Foot switch que deseja associar (led irá piscar mais rápido indicando que progamou)
  */
      
-#include <Arduino.h> 
+#include <Arduino.h>
 #include <EEPROM.h>
 #include <SPI.h>
 #include "Usb.h"
 #include "usbhub.h"
 #include "usbh_midi.h"
 #include "FastLED.h"
-#include "TimerOne.h"
+//#include "TimerOne.h"
 
 #define NUM_BANKS    4  //número de banks
 #define NUM_PATCHES  6  //número de patches por bank
@@ -78,7 +78,7 @@ String bank_letter="A";
 bool program_mode=0; //0 - modo de programação / 1 - modo de seleção
 byte bt_mode=4;     //4 - modo de 4 botões de patch / 5 - modo de 5 botões de patch / 6 - modo de 6 botões de patch 
 unsigned int cont=0; //variável auxiliar para contagem de tempo
-bool shift=0; //Indica se entrou no modo de configuração (HOLD pressionado por 3 segundos)
+bool hold=0; //Indica se entrou no modo de configuração (HOLD pressionado por 3 segundos)
 bool hold_flag=0; //Indica se entrou no modo de configuração (HOLD pressionado por 3 segundos)
 
 bool bt_patch=1; //indica se um botão é pressionado (coeça em 1 para carregar no início)
@@ -120,12 +120,13 @@ void setup() {
   led_config(); //configura leds e ajusta brilho
   //led_show();
   bt_read(); //lê os estados iniciais dos botões
-  for(bank=0;bank<NUM_PATCHES;bank++){led_show();foot_patch++;delay(500);} //Liga leds em sequencia de cores
+  for(bank=0;bank<NUM_PATCHES;bank++){led_show();foot_patch++;delay(400);} //Liga leds em sequencia de cores
   bank=0;foot_patch=0; //Posição inicial default
   led_show();
   //Midi.SendSysEx(message1,6); //ativa modo editor
-  Timer1.initialize(3000000); //conting 3s holding
-  Timer1.attachInterrupt(hold_function);
+
+  // Configuração do timer1 
+  TCCR1A = 0;  //configura timer para operação normal pinos OC1A e OC1B desconectados
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -134,14 +135,15 @@ bool x = false;
 void loop() {
   bt_check();
   //piscar led no modo de programação
-  if(program_mode==1){
+  if((program_mode==1) & (hold!=1)){
     i++;
     if(i==200){x=!x;i=0;}
     if(x){FastLED.setBrightness(0);FastLED.show();}
-    else{FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
+    else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
   }
-  else if(x){FastLED.setBrightness(BRIGHTNESS);FastLED.show();x=0;}
+  else if(x){FastLED.setBrightness(BRIGHTNESS);led_show();x=0;}
   
+  //Gravar patches manualmente:
   if(Serial.available()){
     char c = Serial.read();
     if(c=='1'){program_mode=!program_mode;Serial.println("Program mode = "+(String)program_mode);}
@@ -221,11 +223,17 @@ void load_patches() {
 void bt_check(void) {
   //UP////////////////////////////////////////////////////////////////////(Momentary button)
   if (!digitalRead(BT_UP)){
+    Serial.println("HOLD PRESSED...");
+    TCCR1B = 0;TCCR1B |= (1<<CS10)|(1 << CS12);  // configura prescaler para 1024: CS12 = 1 e CS10 = 1
+    TCNT1 = 0xC900; // valor para overflow ocorrer em ~ 3 segundos (2^16-(3s*8MHz/1024))
+    TIFR1  = (1 << TOV0); // limpar flag de interrupção
+    TIMSK1 |= (1 << TOIE1); // habilita a interrupção do TIMER1
     while (!digitalRead(BT_UP)){
-      //Serial.print(".");
-      Timer1.start();
+
     }
-    if(shift==0){ // Se o botão HOLD não foi pressionado por 3 segundos, funciona na função normal
+    Serial.println("HOLD UNPRESSED");
+    TCCR1B &= ~(1<< CS12);TCCR1B &= ~(1<< CS11);TCCR1B &= ~(1<< CS10); //Parar timer
+    if(hold==0){ // Se o botão HOLD não foi pressionado por 3 segundos, funciona na função normal
       if(bt_mode==4||bt_mode==5){   //Funciona como UP
         if(bank==NUM_BANKS-1) bank=0;
         else bank++;
@@ -238,57 +246,98 @@ void bt_check(void) {
         bt_patch=1; //indica que um botão de patch foi pressionado
       }
     }
-    else{ // Se o botão HOLD foi pressionado por 3 segundos, altera a função
-      if (digitalRead(BT_A) != btA){btA = digitalRead(BT_A);bt_mode=4;shift=0;} //ativa modo 4 botões
-      if (digitalRead(BT_B) != btB){btB = digitalRead(BT_B);bt_mode=5;shift=0;} //ativa modo 5 botões
-      if (digitalRead(BT_C) != btC){btC = digitalRead(BT_C);bt_mode=6;shift=0;} //ativa modo 6 botões
-      if (digitalRead(BT_D) != btD){btD = digitalRead(BT_D);program_mode=1;shift=0;} //ativa modo de programação
-      if (digitalRead(BT_DOWN) != btDOWN){btDOWN = digitalRead(BT_DOWN);program_mode=0;shift=0;} //desativa modo de programação
-      Serial.println("Mode: "+ (String)bt_mode);
-      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
-    }
   }
   //DOWN//////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_DOWN) != btDOWN) {
-    if(bt_mode==5||bt_mode==6){ //Funciona como PATCH E
-      btDOWN = digitalRead(BT_DOWN);
-      foot_patch=4; //posição 4 = patch E no footswitch
-      bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      if(bt_mode==5||bt_mode==6){ //Funciona como PATCH E
+        btDOWN = digitalRead(BT_DOWN);
+        foot_patch=4; //posição 4 = patch E no footswitch
+        bt_patch=1; //indica que um botão de patch foi pressionado
+      }
+      else{ //Funciona como DOWN (bt_mode=4)
+        btDOWN = digitalRead(BT_DOWN);
+        if(bank==0) bank=NUM_BANKS-1;
+        else bank--;
+        Serial.println("DOWN para bank: " + (String)bank);
+        //delay(700); //evitar repique da chave
+        bt_updown=1; //indica que o botão up ou down foi pressionado 
+      }
     }
-    else{ //Funciona como DOWN (bt_mode=4)
+    else{
       btDOWN = digitalRead(BT_DOWN);
-      if(bank==0) bank=NUM_BANKS-1;
-      else bank--;
-      Serial.println("DOWN para bank: " + (String)bank);
-      //delay(700); //evitar repique da chave
-      bt_updown=1; //indica que o botão up ou down foi pressionado 
+      program_mode=0; //desativa modo de programação
+      hold=0;
+      FastLED.clear();leds[1]= ColorFromPalette(RGB_colors, bank*16);
+      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
+      led_show();
+      Serial.println("Mode: "+ (String)bt_mode);
     }
   }
   //PATCH A////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_A) != btA) {
-    btA = digitalRead(BT_A);
-    foot_patch=0; //posição 0 = patch A no footswitch
-    bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      btA = digitalRead(BT_A);
+      foot_patch=0; //posição 0 = patch A no footswitch
+      bt_patch=1; //indica que um botão de patch foi pressionado
+    }
+    else{
+      btA = digitalRead(BT_A);
+      bt_mode=4;
+      hold=0;
+      FastLED.clear();leds[5]= ColorFromPalette(RGB_colors, bank*16);
+      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
+      led_show();
+      Serial.println("Mode: "+ (String)bt_mode);
+    }
   }
   //PATCH B////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_B) != btB) {
-    btB = digitalRead(BT_B);
-    foot_patch=1; //posição 1 = patch B no footswitch
-    bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      btB = digitalRead(BT_B);
+      foot_patch=1; //posição 1 = patch B no footswitch
+      bt_patch=1; //indica que um botão de patch foi pressionado
+    }
+    else{
+      btB = digitalRead(BT_B);
+      bt_mode=5;
+      hold=0;
+      FastLED.clear();leds[4]= ColorFromPalette(RGB_colors, bank*16);
+      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
+      led_show();
+      Serial.println("Mode: "+ (String)bt_mode);
+    }
   }
   //PATCH C////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_C) != btC) {
-    btC = digitalRead(BT_C);
-    foot_patch=2; //posição 2 = patch C no footswitch
-    bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      btC = digitalRead(BT_C);
+      foot_patch=2; //posição 2 = patch C no footswitch
+      bt_patch=1; //indica que um botão de patch foi pressionado
+    }
+    else{
+      btC = digitalRead(BT_C);
+      bt_mode=6;
+      hold=0;
+      FastLED.clear();leds[3]= ColorFromPalette(RGB_colors, bank*16);
+      for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que configurou modo
+      led_show();
+      Serial.println("Mode: "+ (String)bt_mode);    }
   }
   //PATCH D////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_D) != btD) {
-    btD = digitalRead(BT_D);
-    foot_patch=3; //posição 3 = patch D no footswitch
-    bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      btD = digitalRead(BT_D);
+      foot_patch=3; //posição 3 = patch D no footswitch
+      bt_patch=1; //indica que um botão de patch foi pressionado
+    }
+    else{
+      btD = digitalRead(BT_D);
+      program_mode=1; //ativa o modo de programação
+      hold=0;led_show();
+    }
   }
-  
+  //Carregar patches:////////////////////////////////////////////////////////////////////////////
   if (bt_patch==1){
     led_show();
     if(program_mode==1){
@@ -371,9 +420,10 @@ String bank_to_letter(){
   return bank_letter;
 }
 
-void hold_function(){
-  //Timer1.stop();
-  Timer1.detachInterrupt();
-  shift=1; Serial.println("Shift = 1");
-  for(int i=0;i<3;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que entrou no modo HOLD
+ISR(TIMER1_OVF_vect){ //interrupção do TIMER1 
+  hold=1; Serial.println("hold = 1");
+  for (int j=0;j<=NUM_LEDS;j++){
+    leds[NUM_LEDS-j]= ColorFromPalette(RGB_colors, j*16);
+  }
+  FastLED.setBrightness(BRIGHTNESS/2);FastLED.show();
 }
