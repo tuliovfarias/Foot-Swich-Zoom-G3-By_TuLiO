@@ -1,4 +1,4 @@
-# Foot-Swich-Zoom-G3-By_TuLiO
+# Foot-Swich-Zoom-G3 - By TuLiO
  Foot switch programavel para pedaleira Zoom G3/G3X
  
 - Instalar driver do FTDI: HARDWARES\FTDI programmer\CDM21228_Setup.zip
