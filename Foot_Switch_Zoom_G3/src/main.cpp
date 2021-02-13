@@ -72,7 +72,7 @@ void pisca_led();
 byte bank_patch[NUM_BANKS][NUM_PATCHES]; //matriz que armazena todos os patches de cada bank
 byte patch = 0;
 byte foot_patch=0;
-byte bank=0;
+byte fs_bank=0;
 String bank_letter="A";
 bool program_mode=0; //0 - modo de programação / 1 - modo de seleção
 byte bt_mode=4;     //4 - modo de 4 botões de patch / 5 - modo de 5 botões de patch / 6 - modo de 6 botões de patch 
@@ -117,8 +117,8 @@ void setup() {
   led_config(); //configura leds e ajusta brilho
   //led_show();
   bt_read(); //lê os estados iniciais dos botões
-  for(bank=0;bank<NUM_PATCHES;bank++){led_show();foot_patch++;delay(500);} //Liga leds em sequencia de cores
-  bank=0;foot_patch=0; //Posição inicial default
+  for(fs_bank=0;fs_bank<NUM_PATCHES;fs_bank++){led_show();foot_patch++;delay(500);} //Liga leds em sequencia de cores
+  fs_bank=0;foot_patch=0; //Posição inicial default
   led_show();
   //Midi.SendSysEx(message1,6); //ativa modo editor
 }
@@ -133,15 +133,15 @@ void loop() {
     i++;
     if(i==200){x=!x;i=0;}
     if(x){FastLED.setBrightness(0);FastLED.show();}
-    else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
+    else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, fs_bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
   }
   else {led_show();FastLED.setBrightness(BRIGHTNESS);FastLED.show();x=0;}
   
   if(Serial.available()){
     char c = Serial.read();
     if(c=='1'){program_mode=!program_mode;Serial.println("Program mode = "+(String)program_mode);}
-    if(c=='+'){bank++;Serial.print("\nUP bank:" + (String)(bank));}
-    if(c=='-'){bank--;Serial.print("\nDOWN bank:" + (String)(bank));}
+    if(c=='+'){fs_bank++;Serial.print("\nUP bank:" + (String)(fs_bank));}
+    if(c=='-'){fs_bank--;Serial.print("\nDOWN bank:" + (String)(fs_bank));}
     if(c=='*'){
       Serial.print("\nMEMÓRIA FLASH\n");
       for(int i=0;i<NUM_BANKS;i++){
@@ -162,7 +162,7 @@ void loop() {
         Serial.print("\n");
       }
     }
-    //elseif (c=='p')bank++;  
+    //elseif (c=='p')fs_bank++;  
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -227,9 +227,9 @@ void bt_check(void) {
     }
     if(shift==0){
       if(bt_mode==4||bt_mode==5){   //Funciona como UP
-        if(bank==NUM_BANKS-1) bank=0;
-        else bank++;
-        Serial.println("UP para bank: " + (String)bank);
+        if(fs_bank==NUM_BANKS-1) fs_bank=0;
+        else fs_bank++;
+        Serial.println("UP para bank: " + (String)fs_bank);
         //delay(700); //evitar repique da chave
         bt_updown=1; //indica que o botão up ou down foi pressionado   
       }
@@ -251,9 +251,9 @@ void bt_check(void) {
     }
     else{ //Funciona como DOWN (bt_mode=4)
       btDOWN = digitalRead(BT_DOWN);
-      if(bank==0) bank=NUM_BANKS-1;
-      else bank--;
-      Serial.println("DOWN para bank: " + (String)bank);
+      if(fs_bank==0) fs_bank=NUM_BANKS-1;
+      else fs_bank--;
+      Serial.println("DOWN para bank: " + (String)fs_bank);
       //delay(700); //evitar repique da chave
       bt_updown=1; //indica que o botão up ou down foi pressionado 
     }
@@ -287,23 +287,23 @@ void bt_check(void) {
     led_show();
     if(program_mode==1){
       loadPatch();
-      byte pos_eprom= (bank*NUM_PATCHES)+foot_patch;//converte para posição na EPROM
-      bank_patch[bank][foot_patch] = patch; //carrega patch da pedaleira na matriz de paches
+      byte pos_eprom= (fs_bank*NUM_PATCHES)+foot_patch;//converte para posição na EPROM
+      bank_patch[fs_bank][foot_patch] = patch; //carrega patch da pedaleira na matriz de paches
       EEPROM.write(pos_eprom,patch); //carrega patch da pedaleira na memória EPROM
       pisca_led(); //piscar led rápido indicando que programou
-      Serial.println(bank_to_letter()+(String)(bank)+" programou patch: "+(String)(bank_patch[bank][foot_patch]));
+      Serial.println(bank_to_letter()+(String)(fs_bank)+" programou patch: "+(String)(bank_patch[fs_bank][foot_patch]));
     }
     else{
-      writePatch(bank_patch[bank][foot_patch]); //carrega patch na pedaleira
-      Serial.println(bank_to_letter()+(String)(bank)+" carregou patch: "+(String)(bank_patch[bank][foot_patch]));
+      writePatch(bank_patch[fs_bank][foot_patch]); //carrega patch na pedaleira
+      Serial.println(bank_to_letter()+(String)(fs_bank)+" carregou patch: "+(String)(bank_patch[fs_bank][foot_patch]));
     }
     bt_patch=0;
   }
   else if (bt_updown==1){
     foot_patch=0; //volta para posição A
     led_show();
-    writePatch(bank_patch[bank][foot_patch]); //carrega patch na pedaleira
-    Serial.println(bank_to_letter()+(String)(bank)+" carregou patch: "+(String)(bank_patch[bank][foot_patch]));
+    writePatch(bank_patch[fs_bank][foot_patch]); //carrega patch na pedaleira
+    Serial.println(bank_to_letter()+(String)(fs_bank)+" carregou patch: "+(String)(bank_patch[fs_bank][foot_patch]));
     bt_updown=0;
   }
 }
@@ -338,7 +338,7 @@ void led_config(){
 
 void led_show(){
   FastLED.clear();
-  leds[(NUM_LEDS-1)-foot_patch]= ColorFromPalette(RGB_colors, bank*16); //cor muda de acordo com bank 
+  leds[(NUM_LEDS-1)-foot_patch]= ColorFromPalette(RGB_colors, fs_bank*16); //cor muda de acordo com bank 
   FastLED.show();
 }
 
