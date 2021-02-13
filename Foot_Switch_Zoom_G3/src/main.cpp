@@ -66,6 +66,7 @@ void writePatch(byte patch);
 void readPatch();
 void bt_check(void);
 String bank_to_letter();
+void pisca_led();
 
 //Variáveis globais
 byte bank_patch[NUM_BANKS][NUM_PATCHES]; //matriz que armazena todos os patches de cada bank
@@ -132,9 +133,9 @@ void loop() {
     i++;
     if(i==200){x=!x;i=0;}
     if(x){FastLED.setBrightness(0);FastLED.show();}
-    else{FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
+    else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
   }
-  else if(x){FastLED.setBrightness(BRIGHTNESS);FastLED.show();x=0;}
+  else {led_show();FastLED.setBrightness(BRIGHTNESS);FastLED.show();x=0;}
   
   if(Serial.available()){
     char c = Serial.read();
@@ -218,9 +219,9 @@ void bt_check(void) {
   if (!digitalRead(BT_UP)){
     while (!digitalRead(BT_UP)){
       //Serial.print(".");
-      if (digitalRead(BT_A) != btA){btA = digitalRead(BT_A);bt_mode=4;shift=1;} //ativa modo 4 botões
-      if (digitalRead(BT_B) != btB){btB = digitalRead(BT_B);bt_mode=5;shift=1;} //ativa modo 5 botões
-      if (digitalRead(BT_C) != btC){btC = digitalRead(BT_C);bt_mode=6;shift=1;} //ativa modo 6 botões
+      if (digitalRead(BT_A) != btA){btA = digitalRead(BT_A);bt_mode=4;shift=1;pisca_led();} //ativa modo 4 botões
+      if (digitalRead(BT_B) != btB){btB = digitalRead(BT_B);bt_mode=5;shift=1;pisca_led();} //ativa modo 5 botões
+      if (digitalRead(BT_C) != btC){btC = digitalRead(BT_C);bt_mode=6;shift=1;pisca_led();} //ativa modo 6 botões
       if (digitalRead(BT_D) != btD){btD = digitalRead(BT_D);program_mode=1;shift=1;} //ativa modo de programação
       if (digitalRead(BT_DOWN) != btDOWN){btDOWN = digitalRead(BT_DOWN);program_mode=0;shift=1;} //desativa modo de programação
     }
@@ -289,7 +290,7 @@ void bt_check(void) {
       byte pos_eprom= (bank*NUM_PATCHES)+foot_patch;//converte para posição na EPROM
       bank_patch[bank][foot_patch] = patch; //carrega patch da pedaleira na matriz de paches
       EEPROM.write(pos_eprom,patch); //carrega patch da pedaleira na memória EPROM
-      for(int i=0;i<5;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que programou
+      pisca_led(); //piscar led rápido indicando que programou
       Serial.println(bank_to_letter()+(String)(bank)+" programou patch: "+(String)(bank_patch[bank][foot_patch]));
     }
     else{
@@ -305,6 +306,10 @@ void bt_check(void) {
     Serial.println(bank_to_letter()+(String)(bank)+" carregou patch: "+(String)(bank_patch[bank][foot_patch]));
     bt_updown=0;
   }
+}
+
+void pisca_led(){
+  for(int i=0;i<5;i++){FastLED.setBrightness(0);FastLED.show();delay(70);FastLED.setBrightness(BRIGHTNESS);FastLED.show();delay(100);} //piscar led rápido indicando que programou
 }
 
 void pin_config() {
