@@ -13,10 +13,12 @@
  - Folha adesiva
  
  # Instruções
-- Cortar trilha que liga VBUS ao VCC 3.3V no HostShield e ligar VBUS ao pino RAW do Arduino (para alimentar a pedaleira com 5V e não 3.3V)
+- Cortar trilha que liga VBUS ao VCC 3.3V no HostShield (traço vermelho da imagem abaixo) e ligar VBUS ao pino RAW do Arduino (para alimentar a pedaleira com 5V e não 3.3V)
+
+![usb-host-shield-mini-vbus-mod](https://user-images.githubusercontent.com/39657511/115169232-d8086e80-a093-11eb-8dc7-eab545d5dd18.jpg)
+- Ligar os pinos 2 a 7 do Arduino no comum das chaves usando os fios e nos outros dois pinos da chave ligar VCC e GND (do conector de fonte).
 
 ![Host_Arduino jpg](https://user-images.githubusercontent.com/39657511/115168876-cc687800-a092-11eb-8ee1-01b8fb302477.png)
-- Ligar os pinos 2 a 7 do Arduino no comum das chaves usando os fios e nos outros dois pinos da chave ligar VCC e GND (do conector de fonte).
 - Ligar pino 8 do Arduino no DI do primeiro led e VCC e GND (do conector de fonte).
 - Ligar o FTDI no Arduino
 
@@ -37,3 +39,4 @@ Depois, só selecionar a função secundária.
 
 # Fontes
  - https://geekhack.org/index.php?topic=80421.0
+ - https://diyelectromusic.wordpress.com/2020/08/01/mini-usb-midi-to-midi/
