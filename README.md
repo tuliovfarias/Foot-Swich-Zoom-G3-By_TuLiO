@@ -14,12 +14,12 @@
  
  # Instruções
 - Cortar trilha que liga VBUS ao VCC 3.3V no HostShield e ligar VBUS ao pino RAW do Arduino (para alimentar a pedaleira com 5V e não 3.3V)
+
 ![Host_Arduino jpg](https://user-images.githubusercontent.com/39657511/115168876-cc687800-a092-11eb-8ee1-01b8fb302477.png)
-
-
 - Ligar os pinos 2 a 7 do Arduino no comum das chaves usando os fios e nos outros dois pinos da chave ligar VCC e GND (do conector de fonte).
 - Ligar pino 8 do Arduino no DI do primeiro led e VCC e GND (do conector de fonte).
 - Ligar o FTDI no Arduino
+
 ![FTDI_Arduino_Pro_Mini](https://user-images.githubusercontent.com/39657511/115168754-57953e00-a092-11eb-9f70-8a057418d2eb.png)
 - Instalar driver do FTDI: HARDWARES\FTDI programmer\CDM21228_Setup.zip
 - Na IDE, selecionar "Arduino Pro or Pro Mini"
