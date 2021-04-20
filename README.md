@@ -1,5 +1,6 @@
 # Foot-Swich-Zoom-G3 - By TuLiO
- Foot switch programável para pedaleira Zoom G3/G3X
+ Foot switch programável para pedaleira Zoom G3/G3X Video de demostração:  
+ 
  ![Foto](https://user-images.githubusercontent.com/39657511/115471423-5852df00-a20e-11eb-9cc1-b21aef2c4f86.png)
  
  # Materiais
@@ -39,6 +40,15 @@
  Depois, só selecionar a função secundária.
  - Uma das chaves precisa ser momentary
 
-# Fontes
+# Referências
+ - https://www.talkbass.com/threads/diy-zoom-b3-g3-foot-controller-android-app.1160429/
+ - https://alselectro.wordpress.com/2017/05/14/arduino-pro-mini-how-to-upload-code/
  - https://geekhack.org/index.php?topic=80421.0
  - https://diyelectromusic.wordpress.com/2020/08/01/mini-usb-midi-to-midi/
+ - https://github.com/vegos/ZoomG3_ArduinoMIDI
+ - https://github.com/sixeight7/VController_v3
+
+# Bibliotecas:
+- USB_Host_Shield_2.0 - https://github.com/felis/USB_Host_Shield_2.0
+- TimerOne - https://github.com/PaulStoffregen/TimerOne
+- FastLED - https://github.com/FastLED/FastLED
