@@ -1,5 +1,6 @@
 # Foot-Swich-Zoom-G3 - By TuLiO
- Foot switch programável para pedaleira Zoom G3/G3X 
+ Foot switch programável para pedaleira Zoom G3/G3X
+ 
  Video de demostração do funcionamento: https://youtu.be/4s4xHeftQxM
  
  ![Foto](https://user-images.githubusercontent.com/39657511/115471423-5852df00-a20e-11eb-9cc1-b21aef2c4f86.png)
