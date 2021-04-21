@@ -41,7 +41,7 @@
 
  Botão HOLD precisa ficar pressionado por 3 segundos até que LEDs coloridos se acendam.
  Depois, só selecionar a função secundária.
- - Nesse caso, a chave "F" precisa ser momentary
+ - Nesse caso, a chave "F" precisa ser do tipo momentary
 
 # Referências
  - https://www.talkbass.com/threads/diy-zoom-b3-g3-foot-controller-android-app.1160429/
