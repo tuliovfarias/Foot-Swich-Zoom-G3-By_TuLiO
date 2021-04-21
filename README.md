@@ -33,7 +33,7 @@
 - Outras informações como pinagem e datasheet, encontram-se em "/Files"
 
 # Vesões
- # v1.0
+ # v1.0 - Estável
 
  Botão HOLD precisa ficar segurado para ativar as funções secundárias (MODE 4,5,6 e PROGRAM)
 
