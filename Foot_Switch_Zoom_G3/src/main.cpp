@@ -1,10 +1,12 @@
 /* 
- * Projeto: Footswitch Programável para pedaleira ZOOM G3 - FSP01-ZG3
- * Autor: Túlio Vieira @tuliovieiraqdm
+ * Projeto: Footswitch Programável para pedaleira ZOOM G3/G3X
+ * Versão: 2.0.0
+ * Autor: Túlio Vieira Farias @tuliovieiraqdm
+ * Github: https://github.com/tuliovfarias/Foot-Swich-Zoom-G3-By_TuLiO
  * 
  * Modos de funcionamento e funções de cada botão do FS: 
  * 
- *            BOTÃO 1 | BOTÃO 2 | BOTÃO 3 | BOTÃO 4 | BOTÃO 5 | BOTÃO 6 
+ *            BOTÃO 1 | BOTÃO 2 | BOTÃO 3 | BOTÃO 4 | BOTÃO 5 | BOTÃO 6
  *    MODO 4: Patch A | Patch B | Patch C | Patch D |   DOWN  |   UP
  *    MODO 5: Patch A | Patch B | Patch C | Patch D | Patch E |   UP
  *    MODO 6: Patch A | Patch B | Patch C | Patch D | Patch E | Patch F
@@ -13,17 +15,17 @@
  *    MODO PLAY: Modo normal
  *    
  *    obs: UP e DOWN são para selecionar o próximo bank e o anterior, respectivamente.
- *         Cada bank mostra uma cor nos leds
+ *         Cada bank tem uma cor nos leds
  *    
- *    Para trocar entre os modos, pressionar BOTÃO 6 e outro botão simultaneamente.
+ *    Para trocar entre os modos, pressionar BOTÃO 6 por 3 segundos e depois, o modo desejado.
  *    Cada botão seleciona um modo:
  *       BOTÃO 1 | BOTÃO 2 | BOTÃO 3 | BOTÃO 4 | BOTÃO 5 | BOTÃO 6
  *       MODO 4  | MODO 5  | MODO 6  | PROG    | PLAY    | (pressionado)
  *    
- * Para programar um patch numa posição do FOOT SWICH: 
- *  1º- Selecione o modo de programação (led irá piscar indicando que está no modo PROG)
+ * Para programar um patch numa posição do FOOTSWICH: 
+ *  1º- Selecione o modo de programação (leds irão piscar lentamente indicando que está no modo PROG)
  *  2º- Selecione o patch na pedaleira da ZOOM
- *  3º- Aperte o botão do Foot switch que deseja associar (led irá piscar mais rápido indicando que progamou)
+ *  3º- Aperte o botão do Foot switch que deseja carregar o path (led irá piscar mais rápido indicando que progamou)
  */
      
 #include <Arduino.h> 
@@ -129,13 +131,15 @@ bool x = false;
 void loop() {
   bt_check();
   //piscar led no modo de programação
-  if(program_mode==1){
-    i++;
-    if(i==200){x=!x;i=0;}
-    if(x){FastLED.setBrightness(0);FastLED.show();}
-    else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, fs_bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
-  }
-  else {led_show();FastLED.setBrightness(BRIGHTNESS);FastLED.show();x=0;}
+  if (hold==0){
+    if((program_mode==1)){
+      i++;
+      if(i==200){x=!x;i=0;}
+      if(x){FastLED.setBrightness(0);FastLED.show();}
+      else{for (int j=0;j<bt_mode;j++)leds[j+NUM_LEDS-bt_mode]= ColorFromPalette(RGB_colors, fs_bank*16);FastLED.setBrightness(BRIGHTNESS);FastLED.show();}
+    }
+    else if(x){FastLED.setBrightness(BRIGHTNESS);led_show();x=0;}
+  }  
   
   if(Serial.available()){
     char c = Serial.read();
@@ -278,9 +282,19 @@ void bt_check(void) {
   }
   //PATCH D////////////////////////////////////////////////////////////////(Non-momentary button)
   if (digitalRead(BT_D) != btD) {
-    btD = digitalRead(BT_D);
-    foot_patch=3; //posição 3 = patch D no footswitch
-    bt_patch=1; //indica que um botão de patch foi pressionado
+    if(hold==0){
+      btD = digitalRead(BT_D);
+      fs_patch=3; //posição 3 = patch D no footswitch
+      bt_patch=1; //indica que um botão de patch foi pressionado
+    }
+    else{
+      btD = digitalRead(BT_D);
+      program_mode=1; //ativa o modo de programação
+      hold=0;
+      FastLED.clear();
+      delay(400); //para evitar duplo clique
+      //led_show();
+    }
   }
   
   if (bt_patch==1){
@@ -366,5 +380,14 @@ String bank_to_letter(){
   default:
     break;
   }
-  return bank_letter;
+  return fs_patch_letter;
+}
+
+ISR(TIMER1_OVF_vect){ //interrupção do TIMER1 
+  hold=1; Serial.println("hold = 1");
+  program_mode=0;
+  for (j=0;j<=NUM_LEDS;j++){ // Liga todos os leds coloridos
+    leds[NUM_LEDS-j]= ColorFromPalette(RGB_colors, ((j-1)*16));
+  }
+  FastLED.setBrightness(BRIGHTNESS/2);FastLED.show();
 }
