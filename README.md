@@ -26,6 +26,7 @@
 - Ligar os pinos 2 a 7 do Arduino no comum das chaves usando os fios e nos outros dois pinos da chave ligar VCC e GND (do conector de fonte).
 - Ligar pino 8 do Arduino no DI do primeiro led e VCC e GND (do conector de fonte).
 - Ligar o FTDI no Arduino e no PC para carregar o código
+- Soldar em cada chave pro terra capacitores de cerâmica para evitar repique (valor vai depender da chave).
 
 ![FTDI_Arduino_Pro_Mini](https://user-images.githubusercontent.com/39657511/115168754-57953e00-a092-11eb-9f70-8a057418d2eb.png)
 - Instalar driver do FTDI: HARDWARES\FTDI programmer\CDM21228_Setup.zip
