@@ -12,9 +12,11 @@
  - 6 leds RGB programáveis
  - Fios de rede
  - Caixa para pedal 6 furos
- - 6 chaves para pedal (botões)
+ - 5 chaves normais para pedal
+ - 1 chave momentary para pedal
  - Conector fêmea de fonte
- - Folha adesiva
+ - Fonte 5V
+ - Folha adesiva (para indicação no FS)
  
  # Instruções
 - No HostShield, cortar trilha que liga VBUS ao VCC 3.3V  (traço vermelho da imagem abaixo) e ligar VBUS ao pino RAW do Arduino (para alimentar a pedaleira com 5V e não 3.3V)
