@@ -33,15 +33,16 @@
 - Outras informações como pinagem e datasheet, encontram-se em "/Files"
 
 # Vesões
+ # v2.0 - Atual - Estável
+
+ - Necessário apenas 1 pé para alterar modo.
+ - Para alterar modos, pressionar botão 6 (HOLD) por 3 segundos até que LEDs coloridos se acendam. Depois, só selecionar a função/modo desejado.
+ - Nesse caso, a chave 6 ("F") precisa ser do tipo momentary (fecha contato enquanto estiver sendo pressionada)
+
  # v1.0 - Estável
 
- Botão HOLD precisa ficar segurado para ativar as funções secundárias (MODE 4,5,6 e PROGRAM)
-
- # v2.0 - Em andamento...
-
- Botão HOLD precisa ficar pressionado por 3 segundos até que LEDs coloridos se acendam.
- Depois, só selecionar a função secundária.
- - Nesse caso, a chave "F" precisa ser do tipo momentary
+ - Necessário utilizar os 2 pés para alterar modo. 
+ - Botão HOLD precisa ficar segurado para ativar as funções secundárias (MODE 4,5,6 e PROGRAM)
 
 # Referências
  - https://www.talkbass.com/threads/diy-zoom-b3-g3-foot-controller-android-app.1160429/
